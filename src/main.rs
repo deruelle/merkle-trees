@@ -7,7 +7,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_main() {        
+    fn test_main() {
         main();
     }
 }
