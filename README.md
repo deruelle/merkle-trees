@@ -1,3 +1,5 @@
+[![Rust](https://github.com/deruelle/merkle-trees/actions/workflows/rust.yml/badge.svg)](https://github.com/deruelle/merkle-trees/actions/workflows/rust.yml)
+
 # merkle-trees
 Learning Rust through Implementation of Merkle Trees
 
