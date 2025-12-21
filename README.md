@@ -1,5 +1,7 @@
 [![Rust](https://github.com/deruelle/merkle-trees/actions/workflows/rust.yml/badge.svg)](https://github.com/deruelle/merkle-trees/actions/workflows/rust.yml)
 
+[![codecov](https://codecov.io/github/deruelle/merkle-trees/graph/badge.svg?token=MR8IGAENDM)](https://codecov.io/github/deruelle/merkle-trees)
+
 # merkle-trees
 Learning Rust through Implementation of Merkle Trees
 
