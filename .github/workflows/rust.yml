@@ -16,18 +16,17 @@ jobs:
 
     steps:
     - name: Check out repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Install Rust
-      uses: dtolnay/rust-toolchain@master
+      uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
-          toolchain: ${{ matrix.toolchain }}
-          components: llvm-tools-preview
-    - name: Activate cache
-      uses: Swatinem/rust-cache@v2
+          components: rustfmt, clippy, llvm-tools-preview
     - name: Build
       run: cargo build --verbose  --all-targets
       env:
           RUSTFLAGS: "-Cinstrument-coverage"
+    - name: Rustfmt Check
+      uses: actions-rust-lang/rustfmt@v1
     - name: Run Linter
       run: cargo clippy -- -D warnings
     - name: Run tests
