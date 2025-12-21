@@ -34,6 +34,10 @@ jobs:
       env:
           LLVM_PROFILE_FILE: "target/coverage/prof/%p-%m.profraw"
           RUSTFLAGS: "-Cinstrument-coverage"
+    - name: Install Security Audit
+      run: cargo install cargo-audit
+    - name: Run Security Audit
+      run: cargo audit
     - name: Install Code coverage tooling
       run: cargo install grcov
     - name: Create coverage report
