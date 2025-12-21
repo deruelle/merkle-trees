@@ -28,6 +28,8 @@ jobs:
       run: cargo build --verbose  --all-targets
       env:
           RUSTFLAGS: "-Cinstrument-coverage"
+    - name: Run Linter
+      run: cargo clippy -- -D warnings
     - name: Run tests
       run: cargo test --verbose
       env:
