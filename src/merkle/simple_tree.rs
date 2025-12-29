@@ -1,8 +1,11 @@
+use std::sync::Arc;
+
 use crate::hasher::Hasher;
 use crate::merkle::MerkleTreeError;
 use crate::merkle::hash::Hash;
 use crate::merkle::leaf_node::LeafNode;
 use crate::merkle::node::Node;
+
 /// A Merkle tree implementation.
 pub struct SimpleMerkleTree<H: Hasher> {
     leaves: Vec<LeafNode>,
@@ -45,32 +48,35 @@ impl<H: Hasher> SimpleMerkleTree<H> {
 
     /// Rebuild the tree from the current leaves.
     fn rebuild_tree(&mut self) {
-        // Create leaf nodes
-        let mut current_level: Vec<Node> = self
+        // Wrap leaves in Arc
+        let mut current_level: Vec<Arc<Node>> = self
             .leaves
             .iter()
-            .map(|leaf| Node::leaf(leaf.data().to_vec(), &self.hasher))
+            .map(|leaf| Arc::new(Node::Leaf(leaf.clone())))
             .collect();
 
-        // Build tree bottom-up
         while current_level.len() > 1 {
-            let mut next_level = Vec::new();
+            let mut next_level =
+                Vec::with_capacity(current_level.len().div_ceil(2) + (current_level.len() % 2));
 
             for chunk in current_level.chunks(2) {
-                let left = chunk[0].clone();
+                let left = Arc::clone(&chunk[0]);
                 let right = if chunk.len() > 1 {
-                    chunk[1].clone()
+                    Arc::clone(&chunk[1])
                 } else {
-                    // Odd number of nodes: duplicate the last one
-                    chunk[0].clone()
+                    // Just clone the Arc pointer - no deep copy!
+                    Arc::clone(&chunk[0])
                 };
-                next_level.push(Node::internal(left, right, &self.hasher));
+                next_level.push(Arc::new(Node::internal(left, right, &self.hasher)));
             }
 
             current_level = next_level;
         }
 
-        self.root = current_level.into_iter().next();
+        self.root = current_level
+            .into_iter()
+            .next()
+            .map(|arc| Arc::try_unwrap(arc).unwrap_or_else(|arc| (*arc).clone()));
     }
 
     fn print_tree(&self) {

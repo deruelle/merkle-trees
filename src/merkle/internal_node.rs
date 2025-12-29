@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::hasher::Hasher;
 use crate::merkle::hash::Hash;
 use crate::merkle::node::Node;
@@ -9,18 +11,18 @@ use crate::merkle::node::Node;
 /// to distinguish their hashes from leaf nodes.
 #[derive(Clone)]
 pub struct InternalNode {
-    left: Box<Node>,
-    right: Box<Node>,
+    left: Arc<Node>,
+    right: Arc<Node>,
     hash_value: String,
 }
 
 impl InternalNode {
     /// Create a new internal node from two children using the provided hasher.
-    pub fn new<H: Hasher>(left: Node, right: Node, hasher: &H) -> Self {
+    pub fn new<H: Hasher>(left: Arc<Node>, right: Arc<Node>, hasher: &H) -> Self {
         let hash_value = Self::compute_hash(&left, &right, hasher);
         InternalNode {
-            left: Box::new(left),
-            right: Box::new(right),
+            left,
+            right,
             hash_value,
         }
     }
@@ -58,8 +60,8 @@ mod tests {
     #[test]
     fn test_internal_creation() {
         let hasher = SimpleHasher::new();
-        let left = Node::leaf(b"left".to_vec(), &hasher);
-        let right = Node::leaf(b"right".to_vec(), &hasher);
+        let left = Arc::new(Node::leaf(b"left".to_vec(), &hasher));
+        let right = Arc::new(Node::leaf(b"right".to_vec(), &hasher));
         let internal = InternalNode::new(left, right, &hasher);
         assert!(!internal.hash().is_empty());
     }
@@ -67,8 +69,8 @@ mod tests {
     #[test]
     fn test_internal_children_accessible() {
         let hasher = SimpleHasher::new();
-        let left = Node::leaf(b"left".to_vec(), &hasher);
-        let right = Node::leaf(b"right".to_vec(), &hasher);
+        let left = Arc::new(Node::leaf(b"left".to_vec(), &hasher));
+        let right = Arc::new(Node::leaf(b"right".to_vec(), &hasher));
         let left_hash = left.hash();
         let right_hash = right.hash();
 
@@ -80,12 +82,12 @@ mod tests {
     #[test]
     fn test_order_matters() {
         let hasher = Sha256Hasher::new();
-        let a = Node::leaf(b"a".to_vec(), &hasher);
-        let b = Node::leaf(b"b".to_vec(), &hasher);
+        let a = Arc::new(Node::leaf(b"a".to_vec(), &hasher));
+        let b = Arc::new(Node::leaf(b"b".to_vec(), &hasher));
         let internal1 = InternalNode::new(a, b, &hasher);
 
-        let a = Node::leaf(b"a".to_vec(), &hasher);
-        let b = Node::leaf(b"b".to_vec(), &hasher);
+        let a = Arc::new(Node::leaf(b"a".to_vec(), &hasher));
+        let b = Arc::new(Node::leaf(b"b".to_vec(), &hasher));
         let internal2 = InternalNode::new(b, a, &hasher);
 
         // Swapping left/right should produce different hash

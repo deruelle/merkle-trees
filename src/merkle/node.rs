@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::hasher::Hasher;
 use crate::merkle::hash::Hash;
 use crate::merkle::internal_node::InternalNode;
@@ -20,7 +22,7 @@ impl Node {
     }
 
     /// Create an internal node using the provided hasher.
-    pub fn internal<H: Hasher>(left: Node, right: Node, hasher: &H) -> Self {
+    pub fn internal<H: Hasher>(left: Arc<Node>, right: Arc<Node>, hasher: &H) -> Self {
         Node::Internal(InternalNode::new(left, right, hasher))
     }
 
@@ -64,8 +66,8 @@ mod tests {
     #[test]
     fn test_node_internal() {
         let hasher = SimpleHasher::new();
-        let left = Node::leaf(b"left".to_vec(), &hasher);
-        let right = Node::leaf(b"right".to_vec(), &hasher);
+        let left = Arc::new(Node::leaf(b"left".to_vec(), &hasher));
+        let right = Arc::new(Node::leaf(b"right".to_vec(), &hasher));
         let internal = Node::internal(left, right, &hasher);
 
         assert!(!internal.is_leaf());

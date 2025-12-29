@@ -10,6 +10,7 @@ pub use merkle::{
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Arc;
 
     // =========================================================================
     // LeafNode Tests
@@ -61,8 +62,8 @@ mod tests {
     #[test]
     fn test_internal_node_creation() {
         let hasher = Sha256Hasher::new();
-        let left = Node::leaf(b"a".to_vec(), &hasher);
-        let right = Node::leaf(b"b".to_vec(), &hasher);
+        let left = Arc::new(Node::leaf(b"a".to_vec(), &hasher));
+        let right = Arc::new(Node::leaf(b"b".to_vec(), &hasher));
         let internal = InternalNode::new(left, right, &hasher);
         assert_eq!(internal.hash().len(), 64);
     }
@@ -70,8 +71,8 @@ mod tests {
     #[test]
     fn test_internal_node_children_accessible() {
         let hasher = Sha256Hasher::new();
-        let left = Node::leaf(b"left".to_vec(), &hasher);
-        let right = Node::leaf(b"right".to_vec(), &hasher);
+        let left = Arc::new(Node::leaf(b"left".to_vec(), &hasher));
+        let right = Arc::new(Node::leaf(b"right".to_vec(), &hasher));
         let left_hash = left.hash();
         let right_hash = right.hash();
 
@@ -83,12 +84,12 @@ mod tests {
     #[test]
     fn test_internal_node_order_matters() {
         let hasher = Sha256Hasher::new();
-        let a = Node::leaf(b"a".to_vec(), &hasher);
-        let b = Node::leaf(b"b".to_vec(), &hasher);
+        let a = Arc::new(Node::leaf(b"a".to_vec(), &hasher));
+        let b = Arc::new(Node::leaf(b"b".to_vec(), &hasher));
         let internal1 = InternalNode::new(a, b, &hasher);
 
-        let a = Node::leaf(b"a".to_vec(), &hasher);
-        let b = Node::leaf(b"b".to_vec(), &hasher);
+        let a = Arc::new(Node::leaf(b"a".to_vec(), &hasher));
+        let b = Arc::new(Node::leaf(b"b".to_vec(), &hasher));
         let internal2 = InternalNode::new(b, a, &hasher);
 
         // Swapping left/right produces different hash
@@ -99,13 +100,13 @@ mod tests {
     fn test_internal_node_deterministic_hash() {
         let hasher = Sha256Hasher::new();
         let internal1 = InternalNode::new(
-            Node::leaf(b"left".to_vec(), &hasher),
-            Node::leaf(b"right".to_vec(), &hasher),
+            Arc::new(Node::leaf(b"left".to_vec(), &hasher)),
+            Arc::new(Node::leaf(b"right".to_vec(), &hasher)),
             &hasher,
         );
         let internal2 = InternalNode::new(
-            Node::leaf(b"left".to_vec(), &hasher),
-            Node::leaf(b"right".to_vec(), &hasher),
+            Arc::new(Node::leaf(b"left".to_vec(), &hasher)),
+            Arc::new(Node::leaf(b"right".to_vec(), &hasher)),
             &hasher,
         );
         assert_eq!(internal1.hash(), internal2.hash());
@@ -125,8 +126,8 @@ mod tests {
     #[test]
     fn test_node_internal_is_not_leaf() {
         let hasher = Sha256Hasher::new();
-        let left = Node::leaf(b"a".to_vec(), &hasher);
-        let right = Node::leaf(b"b".to_vec(), &hasher);
+        let left = Arc::new(Node::leaf(b"a".to_vec(), &hasher));
+        let right = Arc::new(Node::leaf(b"b".to_vec(), &hasher));
         let node = Node::internal(left, right, &hasher);
         assert!(!node.is_leaf());
     }
@@ -141,8 +142,8 @@ mod tests {
     #[test]
     fn test_node_get_data_for_internal_returns_none() {
         let hasher = Sha256Hasher::new();
-        let left = Node::leaf(b"a".to_vec(), &hasher);
-        let right = Node::leaf(b"b".to_vec(), &hasher);
+        let left = Arc::new(Node::leaf(b"a".to_vec(), &hasher));
+        let right = Arc::new(Node::leaf(b"b".to_vec(), &hasher));
         let node = Node::internal(left, right, &hasher);
         assert_eq!(node.get_data(), None);
     }
@@ -158,8 +159,8 @@ mod tests {
         // an internal node whose children happen to produce "ab" when concatenated
         let leaf = Node::leaf(b"ab".to_vec(), &hasher);
 
-        let a = Node::leaf(b"a".to_vec(), &hasher);
-        let b = Node::leaf(b"b".to_vec(), &hasher);
+        let a = Arc::new(Node::leaf(b"a".to_vec(), &hasher));
+        let b = Arc::new(Node::leaf(b"b".to_vec(), &hasher));
         let internal = Node::internal(a, b, &hasher);
 
         // These must be different due to domain separation (0x00 vs 0x01 prefix)
@@ -181,13 +182,13 @@ mod tests {
         //        /  \        /  \
         //       L0  L1      L2  L3
 
-        let l0 = Node::leaf(b"leaf0".to_vec(), &hasher);
-        let l1 = Node::leaf(b"leaf1".to_vec(), &hasher);
-        let l2 = Node::leaf(b"leaf2".to_vec(), &hasher);
-        let l3 = Node::leaf(b"leaf3".to_vec(), &hasher);
+        let l0 = Arc::new(Node::leaf(b"leaf0".to_vec(), &hasher));
+        let l1 = Arc::new(Node::leaf(b"leaf1".to_vec(), &hasher));
+        let l2 = Arc::new(Node::leaf(b"leaf2".to_vec(), &hasher));
+        let l3 = Arc::new(Node::leaf(b"leaf3".to_vec(), &hasher));
 
-        let n1 = Node::internal(l0, l1, &hasher);
-        let n2 = Node::internal(l2, l3, &hasher);
+        let n1 = Arc::new(Node::internal(l0, l1, &hasher));
+        let n2 = Arc::new(Node::internal(l2, l3, &hasher));
         let root = Node::internal(n1, n2, &hasher);
 
         assert!(!root.is_leaf());
@@ -199,30 +200,30 @@ mod tests {
         let hasher = Sha256Hasher::new();
         // Same tree structure, different leaf data -> different root
         let tree1 = Node::internal(
-            Node::internal(
-                Node::leaf(b"a".to_vec(), &hasher),
-                Node::leaf(b"b".to_vec(), &hasher),
+            Arc::new(Node::internal(
+                Arc::new(Node::leaf(b"a".to_vec(), &hasher)),
+                Arc::new(Node::leaf(b"b".to_vec(), &hasher)),
                 &hasher,
-            ),
-            Node::internal(
-                Node::leaf(b"c".to_vec(), &hasher),
-                Node::leaf(b"d".to_vec(), &hasher),
+            )),
+            Arc::new(Node::internal(
+                Arc::new(Node::leaf(b"c".to_vec(), &hasher)),
+                Arc::new(Node::leaf(b"d".to_vec(), &hasher)),
                 &hasher,
-            ),
+            )),
             &hasher,
         );
 
         let tree2 = Node::internal(
-            Node::internal(
-                Node::leaf(b"a".to_vec(), &hasher),
-                Node::leaf(b"b".to_vec(), &hasher),
+            Arc::new(Node::internal(
+                Arc::new(Node::leaf(b"a".to_vec(), &hasher)),
+                Arc::new(Node::leaf(b"b".to_vec(), &hasher)),
                 &hasher,
-            ),
-            Node::internal(
-                Node::leaf(b"c".to_vec(), &hasher),
-                Node::leaf(b"CHANGED".to_vec(), &hasher), // Different!
+            )),
+            Arc::new(Node::internal(
+                Arc::new(Node::leaf(b"c".to_vec(), &hasher)),
+                Arc::new(Node::leaf(b"CHANGED".to_vec(), &hasher)), // Different!
                 &hasher,
-            ),
+            )),
             &hasher,
         );
 
@@ -233,14 +234,14 @@ mod tests {
     fn test_identical_trees_have_same_root() {
         let hasher = Sha256Hasher::new();
         let tree1 = Node::internal(
-            Node::leaf(b"left".to_vec(), &hasher),
-            Node::leaf(b"right".to_vec(), &hasher),
+            Arc::new(Node::leaf(b"left".to_vec(), &hasher)),
+            Arc::new(Node::leaf(b"right".to_vec(), &hasher)),
             &hasher,
         );
 
         let tree2 = Node::internal(
-            Node::leaf(b"left".to_vec(), &hasher),
-            Node::leaf(b"right".to_vec(), &hasher),
+            Arc::new(Node::leaf(b"left".to_vec(), &hasher)),
+            Arc::new(Node::leaf(b"right".to_vec(), &hasher)),
             &hasher,
         );
 
@@ -263,8 +264,8 @@ mod tests {
     #[test]
     fn test_simple_hasher_tree() {
         let hasher = SimpleHasher::new();
-        let left = Node::leaf(b"a".to_vec(), &hasher);
-        let right = Node::leaf(b"b".to_vec(), &hasher);
+        let left = Arc::new(Node::leaf(b"a".to_vec(), &hasher));
+        let right = Arc::new(Node::leaf(b"b".to_vec(), &hasher));
         let root = Node::internal(left, right, &hasher);
         assert!(!root.hash().is_empty());
     }
