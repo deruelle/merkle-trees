@@ -48,7 +48,7 @@ mod tests {
 
     #[test]
     fn test_same_input_same_hash() {
-        let hasher = SimpleHasher::new();
+        let hasher = SimpleHasher::default();
         let hash1 = hasher.hash_bytes(b"test");
         let hash2 = hasher.hash_bytes(b"test");
         assert_eq!(hash1, hash2);

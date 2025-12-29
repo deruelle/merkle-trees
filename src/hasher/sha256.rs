@@ -39,7 +39,7 @@ mod tests {
 
     #[test]
     fn test_different_inputs_different_hashes() {
-        let hasher = Sha256Hasher::new();
+        let hasher = Sha256Hasher::default();
         let hash1 = hasher.hash_bytes(b"hello");
         let hash2 = hasher.hash_bytes(b"world");
         assert_ne!(hash1, hash2);
