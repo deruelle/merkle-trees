@@ -21,7 +21,10 @@
 /// A hash is 32 bytes and a level is a vector of hashes
 ///
 pub trait MerkleTree {
-    
+    add_leaf(data: &[u8]) -> Result<(), Error>;
+    get_root() -> Hash;
+    get_data(index: usize) -> Option<&[u8]>;    
+    get_size() -> usize;    
 }
 
 pub struct AbstractMerkleTree {
@@ -34,3 +37,4 @@ pub struct AbstractMerkleTree {
 impl MerkleTree for AbstractMerkleTree {
     
 }
+
