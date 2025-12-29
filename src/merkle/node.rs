@@ -7,20 +7,21 @@ use crate::merkle::leaf_node::LeafNode;
 ///
 /// This enum provides a unified interface while each inner type
 /// handles its own hashing logic.
-pub enum Node<H: Hasher> {
-    Leaf(LeafNode<H>),
-    Internal(InternalNode<H>),
+#[derive(Clone)]
+pub enum Node {
+    Leaf(LeafNode),
+    Internal(InternalNode),
 }
 
-impl<H: Hasher> Node<H> {
-    /// Create a leaf node (convenience method).
-    pub fn leaf(data: Vec<u8>) -> Self {
-        Node::Leaf(LeafNode::new(data))
+impl Node {
+    /// Create a leaf node using the provided hasher.
+    pub fn leaf<H: Hasher>(data: Vec<u8>, hasher: &H) -> Self {
+        Node::Leaf(LeafNode::new(data, hasher))
     }
 
-    /// Create an internal node (convenience method).
-    pub fn internal(left: Node<H>, right: Node<H>) -> Self {
-        Node::Internal(InternalNode::new(left, right))
+    /// Create an internal node using the provided hasher.
+    pub fn internal<H: Hasher>(left: Node, right: Node, hasher: &H) -> Self {
+        Node::Internal(InternalNode::new(left, right, hasher))
     }
 
     /// Check if this is a leaf node.
@@ -38,7 +39,7 @@ impl<H: Hasher> Node<H> {
 }
 
 /// Node delegates to the inner type's Hash implementation.
-impl<H: Hasher> Hash for Node<H> {
+impl Hash for Node {
     fn hash(&self) -> String {
         match self {
             Node::Leaf(leaf) => leaf.hash(),
@@ -54,16 +55,18 @@ mod tests {
 
     #[test]
     fn test_node_leaf() {
-        let node = Node::<SimpleHasher>::leaf(b"test".to_vec());
+        let hasher = SimpleHasher::new();
+        let node = Node::leaf(b"test".to_vec(), &hasher);
         assert!(node.is_leaf());
         assert_eq!(node.get_data(), Some(b"test".as_slice()));
     }
 
     #[test]
     fn test_node_internal() {
-        let left = Node::<SimpleHasher>::leaf(b"left".to_vec());
-        let right = Node::<SimpleHasher>::leaf(b"right".to_vec());
-        let internal = Node::internal(left, right);
+        let hasher = SimpleHasher::new();
+        let left = Node::leaf(b"left".to_vec(), &hasher);
+        let right = Node::leaf(b"right".to_vec(), &hasher);
+        let internal = Node::internal(left, right, &hasher);
 
         assert!(!internal.is_leaf());
         assert!(internal.get_data().is_none());
@@ -71,14 +74,17 @@ mod tests {
 
     #[test]
     fn test_node_delegates_hash() {
-        let node = Node::<Sha256Hasher>::leaf(b"test".to_vec());
+        let hasher = Sha256Hasher::new();
+        let node = Node::leaf(b"test".to_vec(), &hasher);
         assert_eq!(node.hash().len(), 64);
     }
 
     #[test]
     fn test_different_hashers() {
-        let simple = Node::<SimpleHasher>::leaf(b"test".to_vec());
-        let sha256 = Node::<Sha256Hasher>::leaf(b"test".to_vec());
-        assert_ne!(simple.hash(), sha256.hash());
+        let simple = SimpleHasher::new();
+        let sha256 = Sha256Hasher::new();
+        let node_simple = Node::leaf(b"test".to_vec(), &simple);
+        let node_sha256 = Node::leaf(b"test".to_vec(), &sha256);
+        assert_ne!(node_simple.hash(), node_sha256.hash());
     }
 }

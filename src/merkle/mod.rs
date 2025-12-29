@@ -2,9 +2,46 @@ pub mod hash;
 pub mod internal_node;
 pub mod leaf_node;
 pub mod node;
+pub mod simple_tree;
 
 // Re-exports for convenience
 pub use hash::Hash;
 pub use internal_node::InternalNode;
 pub use leaf_node::LeafNode;
 pub use node::Node;
+pub use simple_tree::SimpleMerkleTree;
+
+/// A Merkle tree is a binary tree in which every leaf node
+/// is labelled with a data block and every non-leaf node
+/// is labelled with the cryptographic hash of the labels of its child nodes.
+/// This design makes them extremely efficient for data verification.
+///
+/// # Invariants
+/// * A leaf Node is raw data that gets hashed inside the Merkle tree.
+/// * Domain separation:
+///     * Leaves: H(0x00 || leaf_bytes)
+///     * Internal nodes: H(0x01 || left_hash || right_hash)
+/// * Dealing with Odd Numbers of Nodes:
+///     * Duplicate the last hash
+/// * Empty Input
+///     * Return an Error
+///
+/// # Basics
+/// * Level 0 (leaves, hashed): h0, h1, h2
+/// * Level 1: H(h0, h1), H(h2, h2)
+/// * Level 2 (Merkle root): H( H(h0,h1), H(h2,h2) )
+///
+/// A hash is 32 bytes and a level is a vector of hashes
+///
+pub trait MerkleTree {
+    fn add_leaf(&mut self, data: &[u8]) -> Result<(), MerkleTreeError>;
+    fn get_root(&self) -> Option<String>;
+    fn get_data(&self, index: usize) -> Option<&[u8]>;
+    fn get_size(&self) -> usize;
+}
+
+/// Errors that can occur when working with a Merkle tree.
+#[derive(Debug)]
+pub enum MerkleTreeError {
+    EmptyInput,
+}
