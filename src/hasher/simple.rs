@@ -7,15 +7,15 @@ use super::Hasher;
 #[derive(Clone)]
 pub struct SimpleHasher;
 
-impl SimpleHasher {
-    pub fn new() -> Self {
-        SimpleHasher
-    }
-}
-
 impl Default for SimpleHasher {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl SimpleHasher {
+    pub fn new() -> Self {
+        SimpleHasher
     }
 }
 

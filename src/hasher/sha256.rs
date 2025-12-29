@@ -7,15 +7,15 @@ use sha2::{Digest, Sha256};
 #[derive(Clone)]
 pub struct Sha256Hasher;
 
-impl Sha256Hasher {
-    pub fn new() -> Self {
-        Sha256Hasher
-    }
-}
-
 impl Default for Sha256Hasher {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl Sha256Hasher {
+    pub fn new() -> Self {
+        Sha256Hasher
     }
 }
 

@@ -27,6 +27,7 @@ impl<H: Hasher> SimpleMerkleTree<H> {
         let leaf = LeafNode::new(data.to_vec(), &self.hasher);
         self.leaves.push(leaf);
         self.rebuild_tree();
+        self.print_tree();
         Ok(())
     }
 
@@ -44,11 +45,6 @@ impl<H: Hasher> SimpleMerkleTree<H> {
 
     /// Rebuild the tree from the current leaves.
     fn rebuild_tree(&mut self) {
-        if self.leaves.is_empty() {
-            self.root = None;
-            return;
-        }
-
         // Create leaf nodes
         let mut current_level: Vec<Node> = self
             .leaves
@@ -75,6 +71,13 @@ impl<H: Hasher> SimpleMerkleTree<H> {
         }
 
         self.root = current_level.into_iter().next();
+    }
+
+    fn print_tree(&self) {
+        println!("Merkle tree:");
+        println!("Root: {}", self.get_root().unwrap());
+        println!("Leaves: {}", self.leaves.len());
+        println!("Size: {}", self.get_size());
     }
 }
 
