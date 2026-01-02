@@ -65,4 +65,11 @@ mod tests {
         ];
         assert_eq!(hash, expected);
     }
+
+    #[test]
+    fn test_default_trait() {
+        let hasher = Sha256Hasher::default();
+        let hash = hasher.hash_bytes(b"test");
+        assert_eq!(hash.len(), 32);
+    }
 }

@@ -47,6 +47,7 @@ jobs:
            --binary-path target/debug \
            --branch \
            --excl-start 'mod tests \{' \
+           --excl-stop '\}' \
            --ignore 'tests/*' \
            -t lcov \
            -o lcov.info \

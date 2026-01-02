@@ -56,4 +56,11 @@ mod tests {
         let hash2 = hasher.hash_bytes(b"test");
         assert_eq!(hash1, hash2);
     }
+
+    #[test]
+    fn test_default_trait() {
+        let hasher = SimpleHasher::default();
+        let hash = hasher.hash_bytes(b"test");
+        assert_eq!(hash.len(), 32);
+    }
 }
