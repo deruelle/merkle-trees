@@ -20,10 +20,13 @@ impl SimpleHasher {
 }
 
 impl Hasher for SimpleHasher {
-    fn hash_bytes(&self, data: &[u8]) -> String {
+    fn hash_bytes(&self, data: &[u8]) -> [u8; 32] {
         // Simple sum-based "hash" - just for demonstration
         let sum: u32 = data.iter().map(|&b| b as u32).sum();
-        format!("{:08x}", sum)
+        let mut hash = [0u8; 32];
+        // Store the sum in the first 4 bytes (big-endian)
+        hash[0..4].copy_from_slice(&sum.to_be_bytes());
+        hash
     }
 }
 
@@ -35,7 +38,7 @@ mod tests {
     fn test_simple_hasher() {
         let hasher = SimpleHasher::new();
         let hash = hasher.hash_bytes(b"hello");
-        assert!(!hash.is_empty());
+        assert_eq!(hash.len(), 32);
     }
 
     #[test]
@@ -48,7 +51,7 @@ mod tests {
 
     #[test]
     fn test_same_input_same_hash() {
-        let hasher = SimpleHasher::default();
+        let hasher = SimpleHasher;
         let hash1 = hasher.hash_bytes(b"test");
         let hash2 = hasher.hash_bytes(b"test");
         assert_eq!(hash1, hash2);

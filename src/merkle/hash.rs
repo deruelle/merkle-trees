@@ -3,6 +3,6 @@
 /// This is implemented by Node, LeafNode, and InternalNode
 /// to retrieve their stored hash.
 pub trait Hash {
-    /// Return the hash of this item as a hex string.
-    fn hash(&self) -> String;
+    /// Return a reference to the hash bytes of this item.
+    fn hash(&self) -> &[u8];
 }

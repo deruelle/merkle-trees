@@ -7,6 +7,11 @@ pub use merkle::{
     Hash, InternalNode, LeafNode, MerkleTree, MerkleTreeError, Node, SimpleMerkleTree,
 };
 
+/// Convert bytes to a hexadecimal string.
+pub fn bytes_to_hex(bytes: &[u8]) -> String {
+    bytes.iter().map(|b| format!("{:02x}", b)).collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -21,7 +26,7 @@ mod tests {
         let hasher = Sha256Hasher::new();
         let leaf = LeafNode::new(b"hello".to_vec(), &hasher);
         assert_eq!(leaf.data(), b"hello");
-        assert_eq!(leaf.hash().len(), 64);
+        assert_eq!(leaf.hash().len(), 32);
     }
 
     #[test]
@@ -36,7 +41,7 @@ mod tests {
         let hasher = Sha256Hasher::new();
         let leaf = LeafNode::new(vec![], &hasher);
         assert_eq!(leaf.data(), &[] as &[u8]);
-        assert_eq!(leaf.hash().len(), 64);
+        assert_eq!(leaf.hash().len(), 32);
     }
 
     #[test]
@@ -65,7 +70,7 @@ mod tests {
         let left = Arc::new(Node::leaf(b"a".to_vec(), &hasher));
         let right = Arc::new(Node::leaf(b"b".to_vec(), &hasher));
         let internal = InternalNode::new(left, right, &hasher);
-        assert_eq!(internal.hash().len(), 64);
+        assert_eq!(internal.hash().len(), 32);
     }
 
     #[test]
@@ -73,12 +78,12 @@ mod tests {
         let hasher = Sha256Hasher::new();
         let left = Arc::new(Node::leaf(b"left".to_vec(), &hasher));
         let right = Arc::new(Node::leaf(b"right".to_vec(), &hasher));
-        let left_hash = left.hash();
-        let right_hash = right.hash();
+        let left_hash = Arc::clone(&left).hash().to_vec();
+        let right_hash = Arc::clone(&right).hash().to_vec();
 
         let internal = InternalNode::new(left, right, &hasher);
-        assert_eq!(internal.left().hash(), left_hash);
-        assert_eq!(internal.right().hash(), right_hash);
+        assert_eq!(internal.left().hash(), left_hash.as_slice());
+        assert_eq!(internal.right().hash(), right_hash.as_slice());
     }
 
     #[test]
@@ -192,7 +197,7 @@ mod tests {
         let root = Node::internal(n1, n2, &hasher);
 
         assert!(!root.is_leaf());
-        assert_eq!(root.hash().len(), 64);
+        assert_eq!(root.hash().len(), 32);
     }
 
     #[test]

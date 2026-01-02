@@ -13,7 +13,7 @@ use crate::merkle::node::Node;
 pub struct InternalNode {
     left: Arc<Node>,
     right: Arc<Node>,
-    hash_value: String,
+    hash_value: [u8; 32],
 }
 
 impl InternalNode {
@@ -38,17 +38,18 @@ impl InternalNode {
     }
 
     /// Compute the hash for this internal node (0x01 domain separator).
-    fn compute_hash<H: Hasher>(left: &Node, right: &Node, hasher: &H) -> String {
-        let mut to_hash = vec![0x01];
-        to_hash.extend_from_slice(left.hash().as_bytes());
-        to_hash.extend_from_slice(right.hash().as_bytes());
+    fn compute_hash<H: Hasher>(left: &Node, right: &Node, hasher: &H) -> [u8; 32] {
+        let mut to_hash = Vec::with_capacity(65); // 1 + 32 + 32
+        to_hash.push(0x01);
+        to_hash.extend_from_slice(left.hash());
+        to_hash.extend_from_slice(right.hash());
         hasher.hash_bytes(&to_hash)
     }
 }
 
 impl Hash for InternalNode {
-    fn hash(&self) -> String {
-        self.hash_value.clone()
+    fn hash(&self) -> &[u8] {
+        &self.hash_value
     }
 }
 
@@ -71,12 +72,12 @@ mod tests {
         let hasher = SimpleHasher::new();
         let left = Arc::new(Node::leaf(b"left".to_vec(), &hasher));
         let right = Arc::new(Node::leaf(b"right".to_vec(), &hasher));
-        let left_hash = left.hash();
-        let right_hash = right.hash();
+        let left_hash = Arc::clone(&left).hash().to_vec();
+        let right_hash = Arc::clone(&right).hash().to_vec();
 
         let internal = InternalNode::new(left, right, &hasher);
-        assert_eq!(internal.left().hash(), left_hash);
-        assert_eq!(internal.right().hash(), right_hash);
+        assert_eq!(internal.left().hash(), left_hash.as_slice());
+        assert_eq!(internal.right().hash(), right_hash.as_slice());
     }
 
     #[test]

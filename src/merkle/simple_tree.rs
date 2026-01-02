@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use crate::bytes_to_hex;
 use crate::hasher::Hasher;
 use crate::merkle::MerkleTreeError;
 use crate::merkle::hash::Hash;
@@ -30,12 +31,11 @@ impl<H: Hasher> SimpleMerkleTree<H> {
         let leaf = LeafNode::new(data.to_vec(), &self.hasher);
         self.leaves.push(leaf);
         self.rebuild_tree();
-        self.print_tree();
         Ok(())
     }
 
     pub fn get_root(&self) -> Option<String> {
-        self.root.as_ref().map(|r| r.hash())
+        self.root.as_ref().map(|r| bytes_to_hex(r.hash()))
     }
 
     pub fn get_data(&self, index: usize) -> Option<&[u8]> {
@@ -77,13 +77,6 @@ impl<H: Hasher> SimpleMerkleTree<H> {
             .into_iter()
             .next()
             .map(|arc| Arc::try_unwrap(arc).unwrap_or_else(|arc| (*arc).clone()));
-    }
-
-    fn print_tree(&self) {
-        println!("Merkle tree:");
-        println!("Root: {}", self.get_root().unwrap());
-        println!("Leaves: {}", self.leaves.len());
-        println!("Size: {}", self.get_size());
     }
 }
 

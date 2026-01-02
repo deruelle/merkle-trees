@@ -10,6 +10,6 @@ pub use simple::SimpleHasher;
 /// This allows injecting different hashing implementations at runtime.
 /// The hasher instance is passed to nodes so they can compute hashes.
 pub trait Hasher {
-    /// Hash raw bytes and return the result as a hex string.
-    fn hash_bytes(&self, data: &[u8]) -> String;
+    /// Hash raw bytes and return the result as a 32-byte array.
+    fn hash_bytes(&self, data: &[u8]) -> [u8; 32];
 }

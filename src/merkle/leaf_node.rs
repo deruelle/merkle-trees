@@ -9,7 +9,7 @@ use crate::merkle::hash::Hash;
 #[derive(Clone)]
 pub struct LeafNode {
     data: Vec<u8>,
-    hash_value: String,
+    hash_value: [u8; 32],
 }
 
 impl LeafNode {
@@ -25,16 +25,17 @@ impl LeafNode {
     }
 
     /// Compute the hash for this leaf (0x00 domain separator).
-    fn compute_hash<H: Hasher>(data: &[u8], hasher: &H) -> String {
-        let mut to_hash = vec![0x00];
+    fn compute_hash<H: Hasher>(data: &[u8], hasher: &H) -> [u8; 32] {
+        let mut to_hash = Vec::with_capacity(1 + data.len());
+        to_hash.push(0x00);
         to_hash.extend_from_slice(data);
         hasher.hash_bytes(&to_hash)
     }
 }
 
 impl Hash for LeafNode {
-    fn hash(&self) -> String {
-        self.hash_value.clone()
+    fn hash(&self) -> &[u8] {
+        &self.hash_value
     }
 }
 

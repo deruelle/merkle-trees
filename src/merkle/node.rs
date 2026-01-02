@@ -42,7 +42,7 @@ impl Node {
 
 /// Node delegates to the inner type's Hash implementation.
 impl Hash for Node {
-    fn hash(&self) -> String {
+    fn hash(&self) -> &[u8] {
         match self {
             Node::Leaf(leaf) => leaf.hash(),
             Node::Internal(internal) => internal.hash(),
@@ -78,7 +78,7 @@ mod tests {
     fn test_node_delegates_hash() {
         let hasher = Sha256Hasher::new();
         let node = Node::leaf(b"test".to_vec(), &hasher);
-        assert_eq!(node.hash().len(), 64);
+        assert_eq!(node.hash().len(), 32);
     }
 
     #[test]
