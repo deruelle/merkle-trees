@@ -22,36 +22,21 @@ jobs:
       with:
           components: rustfmt, clippy, llvm-tools-preview
     - name: Build
-      run: cargo build --verbose  --all-targets
-      env:
-          RUSTFLAGS: "-Cinstrument-coverage"
+      run: cargo build --verbose --all-targets
     - name: Rustfmt Check
       uses: actions-rust-lang/rustfmt@v1
     - name: Run Linter
       run: cargo clippy -- -D warnings
-    - name: Run tests
-      run: cargo test --verbose
-      env:
-          LLVM_PROFILE_FILE: "target/coverage/prof/%p-%m.profraw"
-          RUSTFLAGS: "-Cinstrument-coverage"
+    - name: Install cargo-llvm-cov
+      run: cargo install cargo-llvm-cov
+    - name: Run tests with coverage
+      run: cargo llvm-cov --lcov --output-path lcov_raw.info
+    - name: Filter test code from coverage
+      run: bash filter-lcov.sh lcov_raw.info lcov.info
     - name: Install Security Audit
       run: cargo install cargo-audit
     - name: Run Security Audit
       run: cargo audit
-    - name: Install Code coverage tooling
-      run: cargo install grcov
-    - name: Create coverage report
-      run: |
-         grcov \
-           --source-dir . \
-           --binary-path target/debug \
-           --branch \
-           --excl-start 'mod tests \{' \
-           --excl-stop '\}' \
-           --ignore 'tests/*' \
-           -t lcov \
-           -o lcov.info \
-           target/coverage/prof
     - name: Upload coverage reports to Codecov 
       uses: codecov/codecov-action@v5
       with:
