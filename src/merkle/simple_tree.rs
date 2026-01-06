@@ -2,10 +2,12 @@ use std::sync::Arc;
 
 use crate::bytes_to_hex;
 use crate::hasher::Hasher;
+use crate::merkle::MerkleTree;
 use crate::merkle::MerkleTreeError;
 use crate::merkle::hash::Hash;
 use crate::merkle::leaf_node::LeafNode;
 use crate::merkle::node::Node;
+use crate::merkle::proof::Proof;
 
 /// A Merkle tree implementation.
 pub struct SimpleMerkleTree<H: Hasher> {
@@ -14,16 +16,9 @@ pub struct SimpleMerkleTree<H: Hasher> {
     hasher: H,
 }
 
-impl<H: Hasher> SimpleMerkleTree<H> {
-    pub fn new(hasher: H) -> Self {
-        Self {
-            leaves: Vec::new(),
-            root: None,
-            hasher,
-        }
-    }
-
-    pub fn add_leaf(&mut self, data: &[u8]) -> Result<(), MerkleTreeError> {
+// Trait implementation (public interface) for SimpleMerkleTree
+impl<H: Hasher> MerkleTree<H> for SimpleMerkleTree<H> {
+    fn add_leaf(&mut self, data: &[u8]) -> Result<(), MerkleTreeError> {
         if data.is_empty() {
             return Err(MerkleTreeError::EmptyInput);
         }
@@ -34,18 +29,36 @@ impl<H: Hasher> SimpleMerkleTree<H> {
         Ok(())
     }
 
-    pub fn get_root(&self) -> Option<String> {
+    fn get_root(&self) -> Option<String> {
         self.root.as_ref().map(|r| bytes_to_hex(r.hash()))
     }
 
-    pub fn get_data(&self, index: usize) -> Option<&[u8]> {
+    fn get_data(&self, index: usize) -> Option<&[u8]> {
         self.leaves.get(index).map(|leaf| leaf.data())
     }
 
-    pub fn get_size(&self) -> usize {
+    fn get_size(&self) -> usize {
         self.leaves.len()
     }
 
+    fn prove(&self, _index: usize) -> Result<Proof, MerkleTreeError> {
+        todo!("Proof generation not yet implemented")
+    }
+
+    fn verify(&self, _leaf: impl AsRef<[u8]>, _root: &str) -> bool {
+        todo!("Proof verification not yet implemented")
+    }
+}
+
+// Private implementation details for SimpleMerkleTree
+impl<H: Hasher> SimpleMerkleTree<H> {
+    pub fn new(hasher: H) -> Self {
+        Self {
+            leaves: Vec::new(),
+            root: None,
+            hasher,
+        }
+    }
     /// Rebuild the tree from the current leaves.
     fn rebuild_tree(&mut self) {
         // Wrap leaves in Arc
@@ -56,8 +69,7 @@ impl<H: Hasher> SimpleMerkleTree<H> {
             .collect();
 
         while current_level.len() > 1 {
-            let mut next_level =
-                Vec::with_capacity(current_level.len().div_ceil(2) + (current_level.len() % 2));
+            let mut next_level = Vec::with_capacity(current_level.len().div_ceil(2));
 
             for chunk in current_level.chunks(2) {
                 let left = Arc::clone(&chunk[0]);

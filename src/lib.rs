@@ -4,7 +4,7 @@ pub mod merkle;
 // Re-export main types at crate root for convenience
 pub use hasher::{Hasher, Sha256Hasher, SimpleHasher};
 pub use merkle::{
-    Hash, InternalNode, LeafNode, MerkleTree, MerkleTreeError, Node, SimpleMerkleTree,
+    Hash, InternalNode, LeafNode, MerkleTree, MerkleTreeError, Node, Proof, SimpleMerkleTree,
 };
 
 /// Convert bytes to a hexadecimal string.
