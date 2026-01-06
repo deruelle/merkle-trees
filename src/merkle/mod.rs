@@ -2,7 +2,9 @@ pub mod hash;
 pub mod internal_node;
 pub mod leaf_node;
 pub mod node;
+pub mod proof;
 pub mod simple_tree;
+pub mod tree;
 
 // Re-exports for convenience
 pub use hash::Hash;
@@ -10,6 +12,7 @@ pub use internal_node::InternalNode;
 pub use leaf_node::LeafNode;
 pub use node::Node;
 pub use simple_tree::SimpleMerkleTree;
+pub use tree::Tree;
 
 /// A Merkle tree is a binary tree in which every leaf node
 /// is labelled with a data block and every non-leaf node
