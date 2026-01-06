@@ -4,15 +4,15 @@ pub mod leaf_node;
 pub mod node;
 pub mod proof;
 pub mod simple_tree;
-pub mod tree;
 
 // Re-exports for convenience
+pub use crate::hasher::Hasher;
 pub use hash::Hash;
 pub use internal_node::InternalNode;
 pub use leaf_node::LeafNode;
 pub use node::Node;
+pub use proof::Proof;
 pub use simple_tree::SimpleMerkleTree;
-pub use tree::Tree;
 
 /// A Merkle tree is a binary tree in which every leaf node
 /// is labelled with a data block and every non-leaf node
@@ -36,11 +36,13 @@ pub use tree::Tree;
 ///
 /// A hash is 32 bytes and a level is a vector of hashes
 ///
-pub trait MerkleTree {
+pub trait MerkleTree<H: Hasher> {
     fn add_leaf(&mut self, data: &[u8]) -> Result<(), MerkleTreeError>;
     fn get_root(&self) -> Option<String>;
     fn get_data(&self, index: usize) -> Option<&[u8]>;
     fn get_size(&self) -> usize;
+    fn prove(&self, index: usize) -> Result<Proof, MerkleTreeError>;
+    fn verify(&self, leaf: impl AsRef<[u8]>, root: &str) -> bool;
 }
 
 /// Errors that can occur when working with a Merkle tree.

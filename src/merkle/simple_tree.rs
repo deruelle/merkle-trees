@@ -2,12 +2,12 @@ use std::sync::Arc;
 
 use crate::bytes_to_hex;
 use crate::hasher::Hasher;
+use crate::merkle::MerkleTree;
 use crate::merkle::MerkleTreeError;
 use crate::merkle::hash::Hash;
 use crate::merkle::leaf_node::LeafNode;
 use crate::merkle::node::Node;
 use crate::merkle::proof::Proof;
-use crate::merkle::tree::Tree;
 
 /// A Merkle tree implementation.
 pub struct SimpleMerkleTree<H: Hasher> {
@@ -17,7 +17,7 @@ pub struct SimpleMerkleTree<H: Hasher> {
 }
 
 // Trait implementation (public interface) for SimpleMerkleTree
-impl<H: Hasher> Tree<H> for SimpleMerkleTree<H> {
+impl<H: Hasher> MerkleTree<H> for SimpleMerkleTree<H> {
     fn add_leaf(&mut self, data: &[u8]) -> Result<(), MerkleTreeError> {
         if data.is_empty() {
             return Err(MerkleTreeError::EmptyInput);
