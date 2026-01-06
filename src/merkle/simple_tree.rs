@@ -18,14 +18,6 @@ pub struct SimpleMerkleTree<H: Hasher> {
 
 // Trait implementation (public interface) for SimpleMerkleTree
 impl<H: Hasher> Tree<H> for SimpleMerkleTree<H> {
-    fn new(hasher: H) -> Self {
-        Self {
-            leaves: Vec::new(),
-            root: None,
-            hasher,
-        }
-    }
-
     fn add_leaf(&mut self, data: &[u8]) -> Result<(), MerkleTreeError> {
         if data.is_empty() {
             return Err(MerkleTreeError::EmptyInput);
@@ -53,13 +45,20 @@ impl<H: Hasher> Tree<H> for SimpleMerkleTree<H> {
         todo!("Proof generation not yet implemented")
     }
 
-    fn verify(&self, _leaf: impl AsRef<[u8]>, _root: &String) -> bool {
+    fn verify(&self, _leaf: impl AsRef<[u8]>, _root: &str) -> bool {
         todo!("Proof verification not yet implemented")
     }
 }
 
 // Private implementation details for SimpleMerkleTree
 impl<H: Hasher> SimpleMerkleTree<H> {
+    pub fn new(hasher: H) -> Self {
+        Self {
+            leaves: Vec::new(),
+            root: None,
+            hasher,
+        }
+    }
     /// Rebuild the tree from the current leaves.
     fn rebuild_tree(&mut self) {
         // Wrap leaves in Arc
@@ -70,8 +69,7 @@ impl<H: Hasher> SimpleMerkleTree<H> {
             .collect();
 
         while current_level.len() > 1 {
-            let mut next_level =
-                Vec::with_capacity(current_level.len().div_ceil(2) + (current_level.len() % 2));
+            let mut next_level = Vec::with_capacity(current_level.len().div_ceil(2));
 
             for chunk in current_level.chunks(2) {
                 let left = Arc::clone(&chunk[0]);
