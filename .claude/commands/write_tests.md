@@ -1,6 +1,12 @@
 # Write Tests
 
-Write comprehensive tests for: $ARGUMENTS
+Write comprehensive tests for: $ARGUMENTS.
+
+## Example Usage
+
+- `/write_tests merkle::simple_tree`
+- `/write_tests add_leaf`
+- `/write_tests "Merkle proof generation"`
 
 ## Arguments
 
@@ -59,6 +65,9 @@ mod tests {
     }
 }
 ```
+
+Note: Using `.unwrap()` is acceptable in tests but should be avoided in
+production code.
 
 ## Future Considerations
 
