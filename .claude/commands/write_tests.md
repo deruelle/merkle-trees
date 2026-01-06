@@ -7,5 +7,5 @@ Write comprehensive tests for: $ARGUMENTS
 - Test happy paths
 - Test edge cases
 - Test error states
-- Focus on testing behavior and public API's rather that implementation
+- Focus on testing behavior and public APIs rather than implementation
   details
