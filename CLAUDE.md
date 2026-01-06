@@ -111,3 +111,15 @@ in `.cargo/config.toml`). Install with:
 ```bash
 sudo apt-get install clang mold
 ```
+
+## Claude Code Agents
+
+This project includes specialized agents:
+
+- `blockchain-developer`: Expert in Merkle tree blockchain applications
+- `rust-pro`: Advanced Rust programming assistance
+
+And reusable commands:
+
+- `/audit`: Dependency security and update checks
+- `/write_tests <target>`: Generate comprehensive test suites
