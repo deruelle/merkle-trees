@@ -1,45 +1,79 @@
 # Merkle Trees
 
-## Status
-
 [![Rust](https://github.com/deruelle/merkle-trees/actions/workflows/rust.yml/badge.svg)](https://github.com/deruelle/merkle-trees/actions/workflows/rust.yml)
 [![codecov](https://codecov.io/github/deruelle/merkle-trees/graph/badge.svg?token=MR8IGAENDM)](https://codecov.io/github/deruelle/merkle-trees)
 
-## Overview
+A production-quality Merkle tree implementation in Rust, built as a learning
+project to explore the language through a data structure fundamental to
+blockchain technology.
 
-Learning Rust through Implementation of Merkle Trees.
-Merkle trees are widely used in blockchains, including Bitcoin and Ethereum.
+## Table of Contents
 
-## Representation
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [How Merkle Trees Work](#how-merkle-trees-work)
+- [Merkle Proofs](#merkle-proofs)
+- [Architecture](#architecture)
+- [Development](#development)
+- [Contributing](#contributing)
+
+## Features
+
+- **Pluggable hash algorithms** via the `Hasher` trait (SHA-256 included)
+- **Merkle proof generation and verification** for efficient data integrity checks
+- **Domain separation** to prevent collision attacks
+- **Memory-efficient design** using `Arc` for node sharing
+- **Zero-copy hash access** for optimal performance
+
+## Quick Start
+
+```rust
+use merkle_trees::{SimpleMerkleTree, MerkleTree, Sha256Hasher};
+
+// Create a new tree with SHA-256 hashing
+let mut tree = SimpleMerkleTree::new(Sha256Hasher::new());
+
+// Add data to the tree
+tree.add_leaf(b"transaction1")?;
+tree.add_leaf(b"transaction2")?;
+tree.add_leaf(b"transaction3")?;
+
+// Get the Merkle root (hex string)
+let root = tree.get_root();
+
+// Generate a proof for a specific leaf (index 0)
+let proof = tree.prove(0)?;
+
+// Verify the proof against the expected root
+let expected_root = tree.get_root_bytes().unwrap();
+let is_valid = tree.verify(&proof, b"transaction1", &expected_root);
+```
+
+## How Merkle Trees Work
 
 ![merkle](https://upload.wikimedia.org/wikipedia/commons/9/95/Hash_Tree.svg)
 
-Merkle trees are a hash-based tree data structure in which every leaf node
-is labelled with a data block and every non-leaf node is labelled with
-the cryptographic hash of the labels of its child nodes.
+A Merkle tree is a hash-based data structure where:
 
-A Merkle tree of n leaves has a height of log₂(n)
+- Every **leaf node** contains hashed data
+- Every **internal node** contains the hash of its children
+- The **root hash** represents the entire dataset
 
-This design makes them extremely efficient for data verification.
+A tree with *n* leaves has height log₂(n), making verification extremely efficient.
 
-### Invariants
+### Design Invariants
 
-* A leaf Node is raw data that gets hashed inside the Merkle tree.
-* Domain separation:
-  * Leaves: H(0x00 || leaf_bytes)
-  * Internal nodes: H(0x01 || left_hash || right_hash)
-* Dealing with Odd Numbers of Nodes:
-  * Duplicate the last hash
-* Empty Input:
-  * Return an Error
+| Invariant        | Implementation                       |
+| ---------------- | ------------------------------------ |
+| Leaf hashing     | `H(0x00 \|\| data)`                  |
+| Internal hashing | `H(0x01 \|\| left \|\| right)`       |
+| Odd node count   | Duplicate the last node              |
+| Empty input      | Return `MerkleTreeError::EmptyInput` |
+| Hash size        | Always 32 bytes                      |
 
-### Basics
-
-* Level 0 (leaves, hashed): h0, h1, h2
-* Level 1: H(h0, h1), H(h2, h2)
-* Level 2 (Merkle root): H( H(h0,h1), H(h2,h2) )
-
-A hash is 32 bytes and a level is a vector of hashes
+The domain separation prefixes (`0x00` for leaves, `0x01` for internal nodes)
+prevent second-preimage attacks where different tree structures could produce
+identical roots.
 
 ## Merkle Proofs
 
@@ -236,39 +270,54 @@ flowchart TD
     SW3 --> V1
 ```
 
-## Configuration
+## Architecture
 
-### Linking
+```text
+src/
+├── hasher/              # Pluggable hash algorithms
+│   ├── mod.rs           # Hasher trait definition
+│   ├── sha256.rs        # Production SHA-256 hasher
+│   └── simple.rs        # Test hasher (for debugging)
+├── merkle/              # Tree structure
+│   ├── mod.rs           # Public API and MerkleTree trait
+│   ├── hash.rs          # Hash trait (for types that have a hash)
+│   ├── node.rs          # Node enum (Leaf or Internal)
+│   ├── leaf_node.rs     # Leaf node (contains raw data)
+│   ├── internal_node.rs # Internal node (has two children)
+│   └── simple_tree.rs   # SimpleMerkleTree implementation
+└── lib.rs               # Public API exports
+```
 
-The project is configured to use mold linker for faster linking times via
-`.cargo/config.toml`. The configuration uses `clang` with `-fuse-ld=mold` flag,
-which allows mold to be used as the linker.
+### Key Design Decisions
 
-Install `mold` via:
+- **Strategy pattern** for hashing allows swapping algorithms without changing
+  tree logic
+- **`Arc<Node>`** enables cheap cloning during tree reconstruction
+- **Raw byte arrays** (`[u8; 32]`) instead of hex strings for memory efficiency
+- **`&[u8]` returns** from hash methods eliminate unnecessary allocations
+
+## Development
+
+### Prerequisites
+
+For faster linking times, install mold:
 
 ```bash
 sudo apt-get install clang mold
 ```
 
-After installation, simply build your project normally:
+### Build and Test
 
 ```bash
-cargo build
+cargo build              # Build the project
+cargo test               # Run all tests
+cargo test test_name     # Run a specific test
 ```
 
-The mold linker will be used automatically for faster linking.
-
-## Faster Inner Dev Loop
-
-Install `cargo watch` via:
+### Watch Mode
 
 ```bash
 cargo install cargo-watch
-```
-
-Run locally with
-
-```bash
 cargo watch -x check -x test
 ```
 
@@ -277,4 +326,39 @@ cargo watch -x check -x test
 ```bash
 rustup component add llvm-tools-preview
 cargo install cargo-llvm-cov
+cargo llvm-cov           # Generate coverage report
 ```
+
+## Contributing
+
+This project uses [OpenSpec](https://github.com/deruelle/openspec) for
+spec-driven development of new features.
+
+### When to Create a Proposal
+
+Create an OpenSpec proposal for:
+
+- New features or capabilities
+- Breaking changes to the API
+- Architecture changes
+- Performance optimizations that change behavior
+
+Skip proposals for:
+
+- Bug fixes
+- Documentation updates
+- Dependency updates (non-breaking)
+
+### Workflow
+
+1. Review existing specs: `openspec list --specs`
+2. Check active changes: `openspec list`
+3. Create a proposal in `openspec/changes/<change-id>/`
+4. Get approval before implementing
+5. Archive after deployment
+
+See `openspec/AGENTS.md` for detailed instructions.
+
+## License
+
+MIT
