@@ -100,3 +100,32 @@ impl std::fmt::Display for MerkleTreeError {
 }
 
 impl std::error::Error for MerkleTreeError {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_merkle_tree_error_display_empty_input() {
+        let err = MerkleTreeError::EmptyInput;
+        assert_eq!(err.to_string(), "empty input is not allowed");
+    }
+
+    #[test]
+    fn test_merkle_tree_error_display_invalid_index() {
+        let err = MerkleTreeError::InvalidIndex {
+            index: 5,
+            tree_size: 3,
+        };
+        assert_eq!(
+            err.to_string(),
+            "index 5 is out of bounds for tree with 3 leaves"
+        );
+    }
+
+    #[test]
+    fn test_merkle_tree_error_is_std_error() {
+        let err: Box<dyn std::error::Error> = Box::new(MerkleTreeError::EmptyInput);
+        assert!(err.to_string().contains("empty input"));
+    }
+}
