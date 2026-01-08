@@ -3,6 +3,7 @@ pub mod merkle;
 
 // Re-export main types at crate root for convenience
 pub use hasher::{Hasher, Sha256Hasher, SimpleHasher};
+pub use merkle::simple_tree::verify_proof;
 pub use merkle::{
     Hash, InternalNode, LeafNode, MerkleTree, MerkleTreeError, Node, Proof, SimpleMerkleTree,
 };

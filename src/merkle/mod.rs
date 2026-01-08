@@ -37,16 +37,66 @@ pub use simple_tree::SimpleMerkleTree;
 /// A hash is 32 bytes and a level is a vector of hashes
 ///
 pub trait MerkleTree<H: Hasher> {
+    /// Add a leaf to the tree with the given data.
     fn add_leaf(&mut self, data: &[u8]) -> Result<(), MerkleTreeError>;
+
+    /// Get the root hash of the tree as a hex string, or None if empty.
     fn get_root(&self) -> Option<String>;
-    fn get_data(&self, index: usize) -> Option<&[u8]>;
-    fn get_size(&self) -> usize;
-    fn prove(&self, index: usize) -> Result<Proof, MerkleTreeError>;
-    fn verify(&self, leaf: impl AsRef<[u8]>, root: &str) -> bool;
+
+    /// Get the root hash as raw bytes, or None if empty.
+    fn get_root_bytes(&self) -> Option<[u8; 32]>;
+
+    /// Get the data at the given leaf index.
+    fn get_data(&self, index: u64) -> Option<&[u8]>;
+
+    /// Get the number of leaves in the tree.
+    fn get_size(&self) -> u64;
+
+    /// Generate a membership proof for the leaf at the given index.
+    ///
+    /// Returns `MerkleTreeError::InvalidIndex` if the index is out of bounds
+    /// or the tree is empty.
+    ///
+    /// # Complexity
+    ///
+    /// - Time: O(log n) to collect sibling hashes
+    /// - Space: O(log n) for the proof
+    fn prove(&self, index: u64) -> Result<Proof, MerkleTreeError>;
+
+    /// Verify that a leaf with the given data belongs to a tree with the expected root.
+    ///
+    /// This method requires a proof to have been generated and stored on the tree.
+    /// For standalone verification without a tree instance, use `verify_proof()`.
+    fn verify(&self, proof: &Proof, leaf_data: &[u8], expected_root: &[u8; 32]) -> bool;
 }
 
 /// Errors that can occur when working with a Merkle tree.
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MerkleTreeError {
+    /// The input data was empty.
     EmptyInput,
+    /// The provided index is out of bounds for this tree.
+    InvalidIndex {
+        /// The index that was requested.
+        index: u64,
+        /// The number of leaves in the tree.
+        tree_size: u64,
+    },
 }
+
+impl std::fmt::Display for MerkleTreeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MerkleTreeError::EmptyInput => write!(f, "empty input is not allowed"),
+            MerkleTreeError::InvalidIndex { index, tree_size } => {
+                write!(
+                    f,
+                    "index {} is out of bounds for tree with {} leaves",
+                    index, tree_size
+                )
+            }
+        }
+    }
+}
+
+impl std::error::Error for MerkleTreeError {}

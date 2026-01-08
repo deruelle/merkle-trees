@@ -62,13 +62,13 @@ flowchart TD
     end
 
     subgraph Tree Reconstruction
-        D --> E{Odd number\nof nodes?}
+        D --> E{Odd number of nodes?}
         E -->|Yes| F[Duplicate last node]
         E -->|No| G[Pair nodes]
         F --> G
         G --> H[Hash pairs with 0x01 prefix]
         H --> I[Create InternalNodes]
-        I --> J{Only one\nnode left?}
+        I --> J{Only one node left?}
         J -->|No| E
         J -->|Yes| K[Root Node]
     end
@@ -90,17 +90,17 @@ flowchart TD
 
     subgraph Verifier
         C[Knows Only Root Hash]
-        C --> D{Wants to verify:\nIs data X in the tree?}
+        C --> D{Wants to verify: Is data X in the tree?}
     end
 
     D -->|Option 1: Inefficient| E[Download Entire Tree]
     D -->|Option 2: Efficient| F[Request Merkle Proof]
 
-    E --> G[Wastes bandwidth\nSlow, Storage heavy]
+    E --> G[Wastes bandwidth: Slow, Storage heavy]
 
-    F --> H[Receive Small Proof\n~640 bytes for 1M items]
+    F --> H[Receive Small Proof! ~640 bytes for 1M items]
     H --> I[Verify Locally]
-    I --> J{Computed root\nmatches known root?}
+    I --> J{Computed root matches known root?}
     J -->|Yes| K[Data IS in tree]
     J -->|No| L[Data NOT in tree]
 ```
@@ -139,13 +139,13 @@ For a tree with 8 leaves, proving leaf "B" requires siblings along the path:
 ```mermaid
 flowchart LR
     subgraph Tree Structure
-        Root[Root\nH of H01+H23]
-        H01[H01\nH of HA+HB]
-        H23[H23\nH of HC+HD]
-        HA[HA\nH of A]
-        HB[HB\nH of B]
-        HC[HC\nH of C]
-        HD[HD\nH of D]
+        Root[Root H of H01+H23]
+        H01[H01 H of HA+HB]
+        H23[H23 H of HC+HD]
+        HA[HA H of A]
+        HB[HB H of B]
+        HC[HC H of C]
+        HD[HD H of D]
 
         Root --- H01
         Root --- H23
@@ -203,7 +203,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph Bitcoin Full Node
-        FN1[Stores full blockchain\n~500 GB]
+        FN1[Stores full blockchain 500 GB]
         FN2[Has all transactions]
         FN3[Builds Merkle trees]
     end
@@ -215,7 +215,7 @@ flowchart TD
     end
 
     subgraph SPV Wallet - Phone
-        SW1[Stores headers only\n~60 MB]
+        SW1[Stores headers only 60 MB]
         SW2[Knows Merkle roots]
         SW3[Cannot verify TXs alone]
     end
@@ -224,7 +224,7 @@ flowchart TD
     BH2 --> SW2
 
     subgraph Verification Flow
-        V1[User asks:\nIs my TX confirmed?]
+        V1[User asks: Is my TX confirmed?]
         V2[Wallet requests proof]
         V3[Receives ~20 hashes]
         V4[Verifies against root]
