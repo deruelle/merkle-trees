@@ -13,17 +13,6 @@ ignore:
   - "**/*tests.rs"
   - "**/tests/**"
 
-# Configure coverage for specific files
-parsers:
-  v1:
-    # Ignore lines after #[cfg(test)] in all files
-    exclude_lines:
-      - '#\[cfg\(test\)\]'
-      - '#\[test\]'
-      - '^\s*mod\s+tests\s*\{'
-      - '^\s*//.*'
-      - '^\s*/\*.*'
-
 comment:
   layout: "reach, diff, flags, files"
   behavior: default
